@@ -18,7 +18,6 @@ A Flask web application that displays visitor information including IP address, 
 - **Frontend**: Bootstrap 5, Font Awesome
 - **Database**: Azure Cosmos DB (NoSQL)
 - **Authentication**: Azure Managed Identity
-- **Containerization**: Docker
 
 ## Local Development
 

@@ -131,15 +131,11 @@ def index():
         }
         
         # Save to Cosmos DB
-        # cosmos_saved = save_to_cosmos(visitor_data.copy())
+        cosmos_saved = save_to_cosmos(visitor_data.copy())
         
-        # return render_template('index.html', 
-        #                      visitor_data=visitor_data,
-        #                      cosmos_saved=cosmos_saved)
         return render_template('index.html', 
                              visitor_data=visitor_data,
-                             cosmos_saved=True)  # Assuming save is always successful for demo
-
+                             cosmos_saved=cosmos_saved)
                              
     except Exception as e:
         logger.error(f"Error in index route: {e}")
