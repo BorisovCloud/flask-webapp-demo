@@ -1,0 +1,5 @@
+Flask
+azure-cosmos
+azure-identity
+requests
+python-dotenv
