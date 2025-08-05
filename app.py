@@ -31,18 +31,31 @@ def get_cosmos_client():
 
 def get_client_ip():
     """Get the real client IP address, considering proxy headers"""
-    if request.headers.get('X-Forwarded-For'):
-        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    # Azure App Service specific headers
+    if request.headers.get('X-Azure-ClientIP'):
+        ip = request.headers.get('X-Azure-ClientIP')
+    elif request.headers.get('X-Forwarded-For'):
+        # X-Forwarded-For can contain multiple IPs, get the first one
+        ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
     elif request.headers.get('X-Real-IP'):
-        return request.headers.get('X-Real-IP')
+        ip = request.headers.get('X-Real-IP')
     else:
-        return request.remote_addr
+        ip = request.remote_addr
+    
+    # Remove port number if present (format: IP:PORT)
+    if ':' in ip and not ip.startswith('['):  # Handle IPv4 with port, but not IPv6
+        ip = ip.split(':')[0]
+    
+    return ip
 
 def get_country_from_ip(ip_address):
     """Get country information from IP address using ip-api.com (free tier)"""
     try:
+        logger.info(f"Getting geolocation for IP: {ip_address}")
+        
         # Skip for local IPs
-        if ip_address in ['127.0.0.1', 'localhost'] or ip_address.startswith('192.168.') or ip_address.startswith('10.'):
+        if ip_address in ['127.0.0.1', 'localhost'] or ip_address.startswith('192.168.') or ip_address.startswith('10.') or ip_address.startswith('172.'):
+            logger.info(f"Local/Private IP detected: {ip_address}")
             return {
                 'country': 'Local/Private',
                 'countryCode': 'LOCAL',
@@ -50,12 +63,28 @@ def get_country_from_ip(ip_address):
                 'region': 'Local'
             }
         
-        response = requests.get(f'http://ip-api.com/json/{ip_address}?fields=status,message,country,countryCode,region,city,lat,lon,timezone', timeout=5)
+        # Validate IP format
+        if not ip_address or ip_address == '':
+            logger.warning("Empty IP address provided")
+            return {
+                'country': 'Invalid IP',
+                'countryCode': 'XX',
+                'city': 'Unknown',
+                'region': 'Unknown'
+            }
+        
+        url = f'http://ip-api.com/json/{ip_address}?fields=status,message,country,countryCode,region,city,lat,lon,timezone'
+        logger.info(f"Making request to: {url}")
+        
+        response = requests.get(url, timeout=10)
+        logger.info(f"Response status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
+            logger.info(f"API response: {data}")
+            
             if data.get('status') == 'success':
-                return {
+                result = {
                     'country': data.get('country', 'Unknown'),
                     'countryCode': data.get('countryCode', 'XX'),
                     'city': data.get('city', 'Unknown'),
@@ -64,9 +93,29 @@ def get_country_from_ip(ip_address):
                     'longitude': data.get('lon'),
                     'timezone': data.get('timezone', 'Unknown')
                 }
+                logger.info(f"Successfully retrieved geolocation: {result}")
+                return result
+            else:
+                logger.error(f"API returned error: {data.get('message', 'Unknown error')}")
+                return {
+                    'country': f"API Error: {data.get('message', 'Unknown')}",
+                    'countryCode': 'XX',
+                    'city': 'Unknown',
+                    'region': 'Unknown'
+                }
         
+        logger.error(f"HTTP error: {response.status_code}")
         return {
-            'country': 'Unknown',
+            'country': f'HTTP Error: {response.status_code}',
+            'countryCode': 'XX',
+            'city': 'Unknown',
+            'region': 'Unknown'
+        }
+        
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout getting country from IP {ip_address}")
+        return {
+            'country': 'Timeout Error',
             'countryCode': 'XX',
             'city': 'Unknown',
             'region': 'Unknown'
@@ -74,7 +123,7 @@ def get_country_from_ip(ip_address):
     except Exception as e:
         logger.error(f"Error getting country from IP {ip_address}: {e}")
         return {
-            'country': 'Error',
+            'country': f'Error: {str(e)}',
             'countryCode': 'XX',
             'city': 'Error',
             'region': 'Error'
@@ -113,6 +162,11 @@ def index():
         # Get client information
         client_ip = get_client_ip()
         user_agent = request.headers.get('User-Agent', 'Unknown')
+        
+        # Log headers for debugging
+        logger.info(f"Request headers: {dict(request.headers)}")
+        logger.info(f"Extracted IP: {client_ip}")
+        
         country_info = get_country_from_ip(client_ip)
         
         # Prepare visitor data
@@ -129,6 +183,8 @@ def index():
             'referer': request.headers.get('Referer', 'Direct'),
             'accept_language': request.headers.get('Accept-Language', 'Unknown')
         }
+        
+        logger.info(f"Visitor data: {visitor_data}")
         
         # Save to Cosmos DB
         cosmos_saved = save_to_cosmos(visitor_data.copy())
