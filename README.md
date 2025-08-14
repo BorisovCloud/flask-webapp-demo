@@ -121,7 +121,128 @@ FLASK_ENV=production
 PORT=8000
 ```
 
-## Contributing
+## Testing
+
+This project includes comprehensive test coverage with unit tests, integration tests, and end-to-end tests.
+
+### Test Structure
+
+```
+tests/
+├── conftest.py           # Test configuration and fixtures
+├── test_utils.py         # Unit tests for utility functions
+├── test_routes.py        # Tests for Flask routes
+├── test_integration.py   # Integration tests for Cosmos DB
+├── test_e2e.py          # End-to-end tests
+└── run_tests.py         # Test runner script
+```
+
+### Running Tests
+
+#### Local Testing
+
+**Quick Setup (Windows):**
+```cmd
+run_tests.bat
+```
+
+**Quick Setup (Linux/macOS):**
+```bash
+chmod +x run_tests.sh
+./run_tests.sh
+```
+
+**Manual Setup:**
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run specific test suites
+python -m pytest tests/test_utils.py -v          # Unit tests
+python -m pytest tests/test_routes.py -v         # Route tests
+python -m pytest tests/test_integration.py -v    # Integration tests
+
+# Run all tests with coverage
+coverage run -m pytest tests/ -v
+coverage report -m
+coverage html  # Generate HTML coverage report
+```
+
+#### Test Categories
+
+- **Unit Tests** (`test_utils.py`): Test individual functions like IP detection, geolocation, and Cosmos DB operations
+- **Route Tests** (`test_routes.py`): Test Flask routes and API endpoints
+- **Integration Tests** (`test_integration.py`): Test Cosmos DB integration and environment configuration
+- **End-to-End Tests** (`test_e2e.py`): Test complete user workflows
+
+### GitHub Actions CI/CD
+
+The project includes automated testing via GitHub Actions that runs on every push and pull request:
+
+#### Workflow Features
+
+- **Multi-Python Testing**: Tests against Python 3.8, 3.9, 3.10, and 3.11
+- **Code Quality Checks**: Linting with flake8, formatting with Black, import sorting with isort
+- **Security Scanning**: Safety check for vulnerabilities, Bandit for security issues
+- **Test Coverage**: Comprehensive test coverage reporting
+- **Docker Building**: Automated Docker image creation and testing
+- **Deployment**: Automated deployment to staging environment
+
+#### Workflow Triggers
+
+- Push to `main` or `develop` branches
+- Pull requests to `main` branch
+
+#### Jobs
+
+1. **Test**: Runs all test suites across multiple Python versions
+2. **Security Scan**: Runs security and vulnerability checks
+3. **Code Quality**: Checks code formatting and style
+4. **Docker Build**: Builds and tests Docker image (on main branch)
+5. **Deploy Staging**: Deploys to staging environment (on main branch)
+
+### Test Configuration
+
+#### pytest.ini
+```ini
+[tool:pytest]
+testpaths = tests
+python_files = test_*.py
+python_classes = Test*
+python_functions = test_*
+addopts = -v --tb=short --strict-markers --disable-warnings
+markers =
+    unit: Unit tests
+    integration: Integration tests
+    e2e: End-to-end tests
+    slow: Slow running tests
+```
+
+#### Coverage Configuration
+Coverage reporting includes:
+- Line coverage for all Python files
+- Branch coverage
+- HTML reports for detailed analysis
+- XML reports for CI integration
+
+### Mocking Strategy
+
+Tests use comprehensive mocking to isolate functionality:
+- **Cosmos DB**: Mocked client, database, and container operations
+- **External APIs**: Mocked requests to ip-api.com
+- **Flask Context**: Proper request context for route testing
+- **Environment Variables**: Isolated environment configuration
+
+### Continuous Integration
+
+The GitHub Actions workflow ensures:
+- All tests pass before merging
+- Code quality standards are maintained
+- Security vulnerabilities are detected
+- Docker images are properly built and tested
+- Coverage reports are generated and tracked
+
+Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)

@@ -140,3 +140,14 @@ cython_debug/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Azure specific
+.azure/
+
+# Security scan results
+bandit-report.json
+safety-report.json
+
+# Test artifacts
+test-results/
+test-reports/
