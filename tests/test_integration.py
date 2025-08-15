@@ -1,7 +1,7 @@
+import os
+import sys
 import unittest
 from unittest.mock import Mock, patch
-import sys
-import os
 
 # Add the parent directory to the path so we can import app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -113,6 +113,7 @@ class TestEnvironmentConfiguration(unittest.TestCase):
         """Test custom environment variable values."""
         # Reload the module to pick up new environment variables
         import importlib
+
         import app
 
         importlib.reload(app)

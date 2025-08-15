@@ -1,19 +1,15 @@
 # Test configuration and fixtures
-import pytest
 import os
 import sys
 from unittest.mock import Mock, patch
 
+import pytest
+
 # Add the parent directory to the path so we can import app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import (
-    app,
-    get_cosmos_client,
-    get_client_ip,
-    get_country_from_ip,
-    save_to_cosmos,
-)
+from app import (app, get_client_ip, get_cosmos_client, get_country_from_ip,
+                 save_to_cosmos)
 
 
 @pytest.fixture

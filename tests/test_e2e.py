@@ -3,13 +3,14 @@ End-to-end tests for the Flask web application.
 These tests run the actual Flask application and test complete user workflows.
 """
 
-import unittest
-import time
-import threading
-import requests
-from unittest.mock import patch
-import sys
 import os
+import sys
+import threading
+import time
+import unittest
+from unittest.mock import patch
+
+import requests
 
 # Add the parent directory to the path so we can import app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

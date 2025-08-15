@@ -4,10 +4,10 @@ Test runner script for the Flask web application.
 This script runs all tests and generates coverage reports.
 """
 
-import unittest
-import sys
-import os
 import logging
+import os
+import sys
+import unittest
 
 # Add the parent directory to the path so we can import app
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

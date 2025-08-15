@@ -1,11 +1,12 @@
-import os
 import json
-import requests
+import logging
+import os
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+
+import requests
 from azure.cosmos import CosmosClient, exceptions
 from azure.identity import DefaultAzureCredential
-import logging
+from flask import Flask, jsonify, render_template, request
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
